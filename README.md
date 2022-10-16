@@ -4,10 +4,25 @@ Parse tag values defined by struct
 
 # Example
 
-Let's suppose we want to be able to parse these attributes
+First we need to define available keywords
 
 ```go
-type Example struct {
-    Field int `custom:"rename=something"`
+type Tag struct {
+    DefaultFirst int `ts:"name=default"`
 }
+```
+
+And then we can parse fields of struct
+
+```go
+type Struct struct {
+    First int `ts:"default=42"`
+}
+```
+
+then we need to first parse the tag structure, and then we can reuse it
+
+```go
+    parsed := New(Tag)
+	
 ```
