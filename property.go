@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/phonkee/go-collection"
 	"github.com/yuin/stagparser"
 )
 
@@ -32,13 +33,12 @@ func (s *IntProperty) Unmarshall(defs []stagparser.Definition, into interface{})
 			result = append(result, d)
 			continue
 		}
-		result = append(result, d)
 		attribs := d.Attributes()
 		if value, ok := attribs[s.Alias]; ok {
 			if value, ok := value.(int64); ok {
 				f := val.FieldByName(s.Name)
 				if f.CanSet() {
-					f.SetInt(int64(value))
+					f.SetInt(value)
 					delete(attribs, s.Alias)
 				}
 			} else {
@@ -92,6 +92,59 @@ type StringArrayProperty struct {
 }
 
 func (s *StringArrayProperty) Unmarshall(defs []stagparser.Definition, into interface{}) ([]stagparser.Definition, error) {
+	coll := collection.Collection[stagparser.Definition](defs)
 	// ignore for now
-	return nil, nil
+	return coll.Filter(func(d stagparser.Definition) bool {
+		return d.Name() != s.Alias
+	}), nil
+}
+
+type BoolProperty struct {
+	BaseProperty
+}
+
+func (b *BoolProperty) Unmarshall(defs []stagparser.Definition, into interface{}) ([]stagparser.Definition, error) {
+	val := reflect.ValueOf(into)
+	if val.CanSet() {
+		return nil, fmt.Errorf("cannot address value: %T", into)
+	}
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	result := make([]stagparser.Definition, 0, len(defs))
+	for _, d := range defs {
+		if d.Name() != b.Alias {
+			result = append(result, d)
+			continue
+		}
+		attribs := d.Attributes()
+		if len(attribs) == 0 {
+			f := val.FieldByName(b.Name)
+			if f.CanSet() {
+				f.SetBool(true)
+				delete(attribs, b.Alias)
+			}
+
+		} else {
+			if value, ok := attribs[b.Alias]; ok {
+				if value, ok := value.(bool); ok {
+					f := val.FieldByName(b.Name)
+					if f.CanSet() {
+						f.SetBool(value)
+						delete(attribs, b.Alias)
+					}
+				} else {
+					// TODO: try string
+
+					return nil, fmt.Errorf("invalid type for %s: %T", b.Alias, value)
+				}
+			}
+		}
+
+	}
+
+	return result, nil
+
 }

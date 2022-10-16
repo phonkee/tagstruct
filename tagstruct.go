@@ -56,6 +56,10 @@ func New[T any](what T) Definition[T] {
 			props = append(props, &StringArrayProperty{
 				BaseProperty: base,
 			})
+		case reflect.Bool:
+			props = append(props, &BoolProperty{
+				BaseProperty: base,
+			})
 		default:
 			panic(fmt.Sprintf("unsupported type %s", fieldType.Kind()))
 		}

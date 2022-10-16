@@ -25,7 +25,11 @@ func (d Definition[T]) ParseTag(tag string) (T, error) {
 	}
 
 	if len(defs) > 0 {
-		return *result, fmt.Errorf("unknown fields %#v", defs)
+		names := make([]string, 0)
+		for _, d := range defs {
+			names = append(names, d.Name())
+		}
+		return *result, fmt.Errorf("unknown fields %v", names)
 	}
 
 	return *result, nil
