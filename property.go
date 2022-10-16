@@ -92,6 +92,7 @@ type StringArrayProperty struct {
 }
 
 func (s *StringArrayProperty) Unmarshall(defs []stagparser.Definition, into interface{}) ([]stagparser.Definition, error) {
+	var err error
 	val := reflect.ValueOf(into)
 	if val.CanSet() {
 		return nil, fmt.Errorf("cannot address value: %T", into)
@@ -113,14 +114,20 @@ func (s *StringArrayProperty) Unmarshall(defs []stagparser.Definition, into inte
 	}).Each(func(d stagparser.Definition) {
 		if v, ok := d.Attributes()[s.Alias]; ok {
 			if v, ok := v.([]interface{}); ok {
-				for _, s := range v {
-					if s, ok := s.(string); ok {
-						value = append(value, s)
+				for _, str := range v {
+					if str, ok := str.(string); ok {
+						value = append(value, str)
+					} else {
+						err = fmt.Errorf("invalid type for %s: %T", s.Alias, value)
 					}
 				}
 			}
 		}
 	})
+	if err != nil {
+		return nil, err
+	}
+
 	f := val.FieldByName(s.Name)
 	if f.CanSet() {
 		f.Set(reflect.ValueOf(value))
@@ -165,15 +172,12 @@ func (b *BoolProperty) Unmarshall(defs []stagparser.Definition, into interface{}
 						delete(attribs, b.Alias)
 					}
 				} else {
-					// TODO: try string
-
+					// TODO: try parse string
 					return nil, fmt.Errorf("invalid type for %s: %T", b.Alias, value)
 				}
 			}
 		}
-
 	}
 
 	return result, nil
-
 }
