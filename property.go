@@ -92,11 +92,41 @@ type StringArrayProperty struct {
 }
 
 func (s *StringArrayProperty) Unmarshall(defs []stagparser.Definition, into interface{}) ([]stagparser.Definition, error) {
+	val := reflect.ValueOf(into)
+	if val.CanSet() {
+		return nil, fmt.Errorf("cannot address value: %T", into)
+	}
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
 	coll := collection.Collection[stagparser.Definition](defs)
 	// ignore for now
-	return coll.Filter(func(d stagparser.Definition) bool {
+	result := coll.Filter(func(d stagparser.Definition) bool {
 		return d.Name() != s.Alias
-	}), nil
+	})
+
+	value := make([]string, 0)
+	coll.Filter(func(d stagparser.Definition) bool {
+		return d.Name() == s.Alias
+	}).Each(func(d stagparser.Definition) {
+		if v, ok := d.Attributes()[s.Alias]; ok {
+			if v, ok := v.([]interface{}); ok {
+				for _, s := range v {
+					if s, ok := s.(string); ok {
+						value = append(value, s)
+					}
+				}
+			}
+		}
+	})
+	f := val.FieldByName(s.Name)
+	if f.CanSet() {
+		f.Set(reflect.ValueOf(value))
+	}
+
+	return result, nil
 }
 
 type BoolProperty struct {
@@ -126,7 +156,6 @@ func (b *BoolProperty) Unmarshall(defs []stagparser.Definition, into interface{}
 				f.SetBool(true)
 				delete(attribs, b.Alias)
 			}
-
 		} else {
 			if value, ok := attribs[b.Alias]; ok {
 				if value, ok := value.(bool); ok {
