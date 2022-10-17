@@ -23,7 +23,6 @@ func New[T any](what T) Definition[T] {
 		fieldType := field.Type
 		// if field is not ignored, we need to check if it is defined in stag parser
 		d, err := stagparser.ParseTag(field.Tag.Get("ts"), "ts")
-		_ = d
 		if err != nil {
 			panic(err)
 		}
@@ -58,6 +57,10 @@ func New[T any](what T) Definition[T] {
 			})
 		case reflect.Bool:
 			props = append(props, &BoolProperty{
+				BaseProperty: base,
+			})
+		case reflect.Struct:
+			props = append(props, &StructProperty{
 				BaseProperty: base,
 			})
 		default:

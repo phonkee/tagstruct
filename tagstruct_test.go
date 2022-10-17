@@ -15,6 +15,12 @@ type TagStruct struct {
 	Keyword     string   `ts:"name=keyword"`
 	Other       []string `ts:"name=other"`
 	Required    bool     `ts:"name=required"`
+	Some        Some     `ts:"name=some"`
+}
+
+type Some struct {
+	From int `ts:"name=from"`
+	To   int `ts:"name=to"`
 }
 
 func TestTagStruct(t *testing.T) {
@@ -22,9 +28,9 @@ func TestTagStruct(t *testing.T) {
 		assert.NotPanics(t, func() {
 			defined := New(TagStruct{})
 			assert.NotNil(t, defined)
-			result, err := defined.ParseTag("description='hello world',keyword='something else',other=['a','b'],id=3,category_id=42")
+			result, err := defined.ParseTag("description='hello \\'world',keyword='something else',other=['a','b'],id=3,category_id=42")
 			assert.Nil(t, err)
-			assert.Equal(t, "hello world", result.Description)
+			assert.Equal(t, "hello 'world", result.Description)
 			assert.Equal(t, "something else", result.Keyword)
 			assert.Equal(t, 3, result.ID)
 			assert.Equal(t, int32(42), result.CategoryID)
@@ -35,7 +41,7 @@ func TestTagStruct(t *testing.T) {
 
 	t.Run("test parse struct", func(t *testing.T) {
 		type TestStruct struct {
-			ID int `custom:"id=42,required"`
+			ID int `custom:"id=42,required,some(from=1,to=10)"`
 		}
 
 		m, err := New(TagStruct{}).ParseStruct(TestStruct{}, "custom")
@@ -43,5 +49,4 @@ func TestTagStruct(t *testing.T) {
 		assert.NotZero(t, m)
 		spew.Dump(m)
 	})
-
 }

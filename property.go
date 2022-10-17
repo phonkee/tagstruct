@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/phonkee/go-collection"
 	"github.com/yuin/stagparser"
 )
@@ -178,6 +179,22 @@ func (b *BoolProperty) Unmarshall(defs []stagparser.Definition, into interface{}
 			}
 		}
 	}
+
+	return result, nil
+}
+
+type StructProperty struct {
+	BaseProperty
+}
+
+func (s *StructProperty) Unmarshall(defs []stagparser.Definition, into interface{}) ([]stagparser.Definition, error) {
+	coll := collection.Collection[stagparser.Definition](defs)
+	// ignore for now
+	result := coll.Filter(func(d stagparser.Definition) bool {
+		return d.Name() != s.Alias
+	})
+
+	spew.Dump(defs)
 
 	return result, nil
 }
