@@ -23,6 +23,6 @@ type Struct struct {
 then we need to first parse the tag structure, and then we can reuse it
 
 ```go
-    parsed := New(Tag)
-	
+    tagdef := New(Tag)
+	result, err := tagdef.Parse("default=42")
 ```
