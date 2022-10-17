@@ -47,6 +47,10 @@ func New[T any](what T) Definition[T] {
 			props = append(props, &IntProperty{
 				BaseProperty: base,
 			})
+		case reflect.Float32, reflect.Float64:
+			props = append(props, &FloatProperty{
+				BaseProperty: base,
+			})
 		case reflect.String:
 			props = append(props, &StringProperty{
 				BaseProperty: base,
@@ -57,10 +61,6 @@ func New[T any](what T) Definition[T] {
 			})
 		case reflect.Bool:
 			props = append(props, &BoolProperty{
-				BaseProperty: base,
-			})
-		case reflect.Struct:
-			props = append(props, &StructProperty{
 				BaseProperty: base,
 			})
 		default:

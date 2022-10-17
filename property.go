@@ -3,8 +3,8 @@ package tagstruct
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/phonkee/go-collection"
 	"github.com/yuin/stagparser"
 )
@@ -166,15 +166,14 @@ func (b *BoolProperty) Unmarshall(defs []stagparser.Definition, into interface{}
 			}
 		} else {
 			if value, ok := attribs[b.Alias]; ok {
-				if value, ok := value.(bool); ok {
+				if bv, err := strconv.ParseBool(value.(string)); err == nil {
 					f := val.FieldByName(b.Name)
 					if f.CanSet() {
-						f.SetBool(value)
+						f.SetBool(bv)
 						delete(attribs, b.Alias)
 					}
 				} else {
-					// TODO: try parse string
-					return nil, fmt.Errorf("invalid type for %s: %T", b.Alias, value)
+					return nil, fmt.Errorf("invalid value for boolean %s: %T", b.Alias, value)
 				}
 			}
 		}
@@ -183,18 +182,39 @@ func (b *BoolProperty) Unmarshall(defs []stagparser.Definition, into interface{}
 	return result, nil
 }
 
-type StructProperty struct {
+type FloatProperty struct {
 	BaseProperty
 }
 
-func (s *StructProperty) Unmarshall(defs []stagparser.Definition, into interface{}) ([]stagparser.Definition, error) {
-	coll := collection.Collection[stagparser.Definition](defs)
-	// ignore for now
-	result := coll.Filter(func(d stagparser.Definition) bool {
-		return d.Name() != s.Alias
-	})
+func (f *FloatProperty) Unmarshall(defs []stagparser.Definition, into interface{}) ([]stagparser.Definition, error) {
+	val := reflect.ValueOf(into)
+	if val.CanSet() {
+		return nil, fmt.Errorf("cannot address value: %T", into)
+	}
 
-	spew.Dump(defs)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	result := make([]stagparser.Definition, 0, len(defs))
+	for _, d := range defs {
+		if d.Name() != f.Alias {
+			result = append(result, d)
+			continue
+		}
+		attribs := d.Attributes()
+		if value, ok := attribs[f.Alias]; ok {
+			if value, ok := value.(float64); ok {
+				field := val.FieldByName(f.Name)
+				if field.CanSet() {
+					field.SetFloat(value)
+					delete(attribs, f.Alias)
+				}
+			} else {
+				return nil, fmt.Errorf("invalid type for %s: %T", f.Alias, value)
+			}
+		}
+	}
 
 	return result, nil
 }
