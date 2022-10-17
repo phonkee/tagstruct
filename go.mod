@@ -1,4 +1,4 @@
-module tagstruct
+module github.com/phonkee/tagstruct
 
 go 1.19
 
