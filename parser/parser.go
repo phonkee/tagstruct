@@ -7,17 +7,17 @@ import (
 
 // Parse parses given input and returns parsed properties
 func Parse(input io.Reader) ([]Property, error) {
-	p := Parser{
-		lex: NewLexer(input),
+	p := parser{
+		lex: newLexer(input),
 	}
 	return p.Parse()
 }
 
-type Parser struct {
-	lex *Lexer
+type parser struct {
+	lex *lexer
 }
 
-func (p *Parser) Parse() ([]Property, error) {
+func (p *parser) Parse() ([]Property, error) {
 	prop, err := p.parseObject(true)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (p *Parser) Parse() ([]Property, error) {
 	return prop.Object, nil
 }
 
-func (p *Parser) parseIdent() (prop Property, _ error) {
+func (p *parser) parseIdent() (prop Property, _ error) {
 	for {
 		pos, token, _ := p.lex.Lex()
 		prop.Position = pos - 1
@@ -59,7 +59,7 @@ func (p *Parser) parseIdent() (prop Property, _ error) {
 	}
 }
 
-func (p *Parser) parseArray() (result Property, _ error) {
+func (p *parser) parseArray() (result Property, _ error) {
 	// TODO: parse array now
 	hasValue := false
 	for {
@@ -101,7 +101,7 @@ func (p *Parser) parseArray() (result Property, _ error) {
 	}
 }
 
-func (p *Parser) parseObject(allowMissingClose bool) (result Property, _ error) {
+func (p *parser) parseObject(allowMissingClose bool) (result Property, _ error) {
 	result.Object = make([]Property, 0)
 
 outer:
@@ -138,7 +138,7 @@ outer:
 	return result, nil
 }
 
-func (p *Parser) parseValue() (result Value, _ error) {
+func (p *parser) parseValue() (result Value, _ error) {
 	pos, tok, str := p.lex.Lex()
 	result.Position = pos - 1
 

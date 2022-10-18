@@ -6,18 +6,18 @@ import (
 	"unicode"
 )
 
-func NewLexer(reader io.Reader) *Lexer {
-	return &Lexer{
+func newLexer(reader io.Reader) *lexer {
+	return &lexer{
 		reader: bufio.NewReader(reader),
 	}
 }
 
-type Lexer struct {
+type lexer struct {
 	pos    int
 	reader *bufio.Reader
 }
 
-func (l *Lexer) Lex() (int, Token, string) {
+func (l *lexer) Lex() (int, Token, string) {
 	for {
 		r, err := l.read()
 		if err != nil {
@@ -114,7 +114,7 @@ func (l *Lexer) Lex() (int, Token, string) {
 	}
 }
 
-func (l *Lexer) peek() (rune, error) {
+func (l *lexer) peek() (rune, error) {
 	r, _, err := l.reader.ReadRune()
 	if err != nil {
 		return 0, err
@@ -123,13 +123,13 @@ func (l *Lexer) peek() (rune, error) {
 	return r, err
 }
 
-func (l *Lexer) read() (rune, error) {
+func (l *lexer) read() (rune, error) {
 	r, _, err := l.reader.ReadRune()
 	l.pos++
 	return r, err
 }
 
-func (l *Lexer) unread() {
+func (l *lexer) unread() {
 	if err := l.reader.UnreadRune(); err != nil {
 		panic(err)
 	}

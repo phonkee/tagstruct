@@ -29,7 +29,7 @@ func TestLexer_Lex(t *testing.T) {
 		}
 
 		for _, item := range data {
-			pos, token, _ := NewLexer(strings.NewReader(item.input)).Lex()
+			pos, token, _ := newLexer(strings.NewReader(item.input)).Lex()
 			assert.Equal(t, item.position, pos)
 			assert.Equal(t, item.token, token)
 		}
