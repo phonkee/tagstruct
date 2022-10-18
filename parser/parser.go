@@ -25,6 +25,7 @@ func (p *parser) Parse() ([]Property, error) {
 	return prop.Object, nil
 }
 
+// parseIdent parses identifier (can start with "=" or "[" or "(")
 func (p *parser) parseIdent() (prop Property, _ error) {
 	for {
 		pos, token, _ := p.lex.Lex()
@@ -59,8 +60,8 @@ func (p *parser) parseIdent() (prop Property, _ error) {
 	}
 }
 
+// parseArray parses array values, it's a bit tricky
 func (p *parser) parseArray() (result Property, _ error) {
-	// TODO: parse array now
 	hasValue := false
 	for {
 		pos, ident, value := p.lex.Lex()
@@ -72,17 +73,19 @@ func (p *parser) parseArray() (result Property, _ error) {
 			continue
 		case TokenEof:
 			return result, fmt.Errorf("unexpected end of file [array]: %w at [%v]", ErrParser, pos)
-		case TokenNumber:
-			result.Array = append(result.Array, Property{
-				Position: pos - 1,
-				Value:    &Value{Position: pos - 1, Number: &value},
-			})
-			hasValue = true
-		case TokenString:
-			result.Array = append(result.Array, Property{
-				Position: pos - 1,
-				Value:    &Value{Position: pos - 1, String: &value},
-			})
+		case TokenNumber, TokenString:
+			switch ident {
+			case TokenNumber:
+				result.Array = append(result.Array, Property{
+					Position: pos - 1,
+					Value:    &Value{Position: pos - 1, Number: &value},
+				})
+			case TokenString:
+				result.Array = append(result.Array, Property{
+					Position: pos - 1,
+					Value:    &Value{Position: pos - 1, String: &value},
+				})
+			}
 			hasValue = true
 		case TokenCloseSquareBracket:
 			return result, nil
