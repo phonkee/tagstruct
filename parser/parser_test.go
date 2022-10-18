@@ -46,6 +46,19 @@ func TestParse(t *testing.T) {
 		result, err := Parse(strings.NewReader("hello[1,2,3, 'four', five(start=1, end=2)]"))
 		assert.NoError(t, err)
 		first := result[0]
+		assert.Equal(t, "hello", first.Name)
+		assert.Equal(t, 0, first.Position)
+		assert.Equal(t, 5, len(first.Array))
+		assert.Equal(t, ptr("1"), first.Array[0].Value.Number)
+		assert.Equal(t, ptr("2"), first.Array[1].Value.Number)
+		assert.Equal(t, ptr("3"), first.Array[2].Value.Number)
+		assert.Equal(t, ptr("four"), first.Array[3].Value.String)
+		assert.Equal(t, "five", first.Array[4].Name)
+		assert.Equal(t, "start", first.Array[4].Object[0].Name)
+		assert.Equal(t, "end", first.Array[4].Object[1].Name)
+		assert.Equal(t, ptr("1"), first.Array[4].Object[0].Value.Number)
+		assert.Equal(t, ptr("2"), first.Array[4].Object[1].Value.Number)
+
 		assert.Equal(t, first.Name, "hello")
 	})
 
